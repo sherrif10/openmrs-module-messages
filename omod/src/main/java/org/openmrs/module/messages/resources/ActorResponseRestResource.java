@@ -2,16 +2,19 @@ package org.openmrs.module.messages.resources;
 
 import java.util.Arrays;
 import java.util.List;
+
 import org.openmrs.api.context.Context;
 import org.openmrs.module.messages.api.model.ActorResponse;
 import org.openmrs.module.messages.api.service.ActorResponseService;
 import org.openmrs.module.webservices.rest.web.RequestContext;
+import org.openmrs.module.webservices.rest.web.annotation.PropertyGetter;
 import org.openmrs.module.webservices.rest.web.annotation.Resource;
 import org.openmrs.module.webservices.rest.web.representation.DefaultRepresentation;
 import org.openmrs.module.webservices.rest.web.representation.FullRepresentation;
 import org.openmrs.module.webservices.rest.web.representation.RefRepresentation;
 import org.openmrs.module.webservices.rest.web.representation.Representation;
-import org.openmrs.module.webservices.rest.web.resource.impl.DelegatingCrudResource;
+import org.openmrs.module.webservices.rest.web.resource.api.PageableResult;
+import org.openmrs.module.webservices.rest.web.resource.impl.DataDelegatingCrudResource;
 import org.openmrs.module.webservices.rest.web.resource.impl.DelegatingResourceDescription;
 import org.openmrs.module.webservices.rest.web.response.ResourceDoesNotSupportOperationException;
 import org.openmrs.module.webservices.rest.web.response.ResponseException;
@@ -27,10 +30,15 @@ import io.swagger.models.properties.StringProperty;
 import org.openmrs.module.webservices.rest.web.RestConstants;
 
 @Resource(name = RestConstants.VERSION_1 + "/actorResponse", supportedClass = ActorResponse.class, supportedOpenmrsVersions = { "1.9.*", "1.10.*", "1.11.*", "1.12.*", "2.0.*", "2.1.*","2.2.*",
-		"2.3.*", "2.4.*", "2.5.*", "2.6.*" })
-public class ActorResponseRestResource extends DelegatingCrudResource<ActorResponse> {
+	"2.3.*", "2.4.*", "2.5.*", "2.6.*" })
+public class ActorResponseRestResource extends DataDelegatingCrudResource<ActorResponse> {
     
     protected static final String REASON = "REST web service";
+
+    @Override
+    public List<Representation> getAvailableRepresentations() {
+      return Arrays.asList(Representation.DEFAULT, Representation.REF);
+    }
 
     @Override
     public DelegatingResourceDescription getRepresentationDescription(Representation rep) {
@@ -166,9 +174,7 @@ public class ActorResponseRestResource extends DelegatingCrudResource<ActorRespo
                 .property("patient", new ArrayProperty(new RefProperty("#/definitions/PatientCreate")))
                 .property("person", new ArrayProperty(new RefProperty("#/definitions/PersonCreate")))
                 .property("id", new IntegerProperty())
-                .property("answereTime", new DateProperty())
-                .property("deathDate", new DateProperty())
-                .property("causeOfDeath", new StringProperty())
+                .property("answeredTime", new DateProperty())
                 .property("actorResponseType",new ArrayProperty(new RefProperty("#/definitions/ActorResponseTypeAttributeCreate")))
                 .property("question",new ArrayProperty(new RefProperty("#/definitions/ActorResponseTypeQuestionCreate")))
                 .property("attributes", new ArrayProperty(new RefProperty("#/definitions/PersonAttributeCreate")));
@@ -212,10 +218,20 @@ public class ActorResponseRestResource extends DelegatingCrudResource<ActorRespo
     }
 
     @Override
-    public ActorResponse save(ActorResponse delegate ) {
-        return Context.getService(ActorResponseService.class).saveOrUpdate(delegate);
-
+    public boolean isRetirable() {
+      return true;
     }
+
+    @Override
+    public ActorResponse save(ActorResponse delegate) {
+        return Context.getService(ActorResponseService.class).saveOrUpdate(delegate);
+    }
+    
+    @PropertyGetter("display")
+	public String getDisplayString(ActorResponse response) {
+        return response.getTextQuestion();
+	}
+
 
     @Override
     protected void delete(ActorResponse delegate, String textQuestion, RequestContext textResponse ) throws ResponseException {
@@ -231,13 +247,18 @@ public class ActorResponseRestResource extends DelegatingCrudResource<ActorRespo
     }
 
     @Override
-    public void purge(ActorResponse delegate, RequestContext context ) throws ResponseException {
+    public void purge(ActorResponse delegate, RequestContext context) throws ResponseException {
+
         if (delegate == null) {
             // DELETE is idempotent, so we return success here
             return;
         }
-        Context.getService(ActorResponseService.class).delete(delegate);  
-    }	
-
+        Context.getService(ActorResponseService.class).delete(delegate);
+    }
+  
+    @Override
+    protected PageableResult doGetAll(RequestContext context) throws ResponseException {
+        throw new ResourceDoesNotSupportOperationException();
+    }
     
 }
