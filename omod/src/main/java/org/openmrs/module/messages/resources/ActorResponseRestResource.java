@@ -29,12 +29,13 @@ import io.swagger.models.properties.StringProperty;
 
 import org.openmrs.module.webservices.rest.web.RestConstants;
 
+/**
+ * {@link Resource} for ActorResponse, supporting standard CRUD operations
+ */
 @Resource(name = RestConstants.VERSION_1 + "/actorResponse", supportedClass = ActorResponse.class, supportedOpenmrsVersions = { "1.9.*", "1.10.*", "1.11.*", "1.12.*", "2.0.*", "2.1.*","2.2.*",
 	"2.3.*", "2.4.*", "2.5.*", "2.6.*" })
 public class ActorResponseRestResource extends DataDelegatingCrudResource<ActorResponse> {
     
-    protected static final String REASON = "REST web service";
-
     @Override
     public List<Representation> getAvailableRepresentations() {
       return Arrays.asList(Representation.DEFAULT, Representation.REF);
@@ -43,41 +44,46 @@ public class ActorResponseRestResource extends DataDelegatingCrudResource<ActorR
     @Override
     public DelegatingResourceDescription getRepresentationDescription(Representation rep) {
         if (rep instanceof DefaultRepresentation) {
-            final DelegatingResourceDescription description = new DelegatingResourceDescription();
-            description.addProperty("id");
-            description.addProperty("patient");
-            description.addProperty("actor");
-            description.addProperty("person");
+            DelegatingResourceDescription description = new DelegatingResourceDescription();
+            description.addProperty("uuid");
+            description.addProperty("display");
+            description.addProperty("patient", Representation.REF);
+            description.addProperty("person", Representation.REF);
             description.addProperty("response");
             description.addProperty("textQuestion");
             description.addProperty("textResponse");
             description.addProperty("question");
+            description.addProperty("sourceId");
+            description.addProperty("sourceType");
+            description.addProperty("answeredTime");
+            description.addProperty("voided");
+          
             description.addSelfLink();
-            description.addLink("full", ".?v=" + RestConstants.REPRESENTATION_FULL);
             description.addLink("ref", ".?v=" + RestConstants.REPRESENTATION_REF);
             description.addSelfLink();
             return description;
         } else if (rep instanceof FullRepresentation) {
-            final DelegatingResourceDescription description = new DelegatingResourceDescription();
-            description.addProperty("id");
-            description.addProperty("patient");
-            description.addProperty("person");
+            DelegatingResourceDescription description = new DelegatingResourceDescription();
+            description.addProperty("uuid");
+			description.addProperty("display");
+            description.addProperty("patient", Representation.REF);
+            description.addProperty("person", Representation.REF);
             description.addProperty("response");
             description.addProperty("textQuestion");
             description.addProperty("textResponse");
             description.addProperty("question");
-            description.addProperty("actor");
             description.addProperty("response");
-            description.addProperty("sourceId");
             description.addProperty("sourceType");
             description.addProperty("answeredTime");
+            description.addProperty("voided");
+			description.addProperty("auditInfo");
             description.addSelfLink();
             return description;
         } else if (rep instanceof RefRepresentation) {
             DelegatingResourceDescription description = new DelegatingResourceDescription();
-            description.addProperty("id");
-            description.addProperty("patient");
-            description.addProperty("person");
+            description.addProperty("uuid");
+            description.addProperty("patient",Representation.REF);
+            description.addProperty("person",Representation.REF);
             description.addProperty("actor");
             description.addProperty("textQuestion");
             description.addProperty("textResponse");
@@ -95,8 +101,10 @@ public class ActorResponseRestResource extends DataDelegatingCrudResource<ActorR
 	@Override
     public DelegatingResourceDescription getCreatableProperties() {
         DelegatingResourceDescription description = new DelegatingResourceDescription();
+        description.addRequiredProperty("uuid");
+        description.addProperty("person", Representation.REF);
         description.addRequiredProperty("patient");
-        description.addRequiredProperty("person");
+        description.addRequiredProperty("actorResponseType");
         description.addProperty("actor");
         description.addProperty("textQuestion");
         description.addProperty("question");
@@ -107,15 +115,17 @@ public class ActorResponseRestResource extends DataDelegatingCrudResource<ActorR
         return description;
     }
     
-    	/**
+    /**
 	 * @throws org.openmrs.module.webservices.rest.web.response.ResourceDoesNotSupportOperationException
 	 * @see org.openmrs.module.webservices.rest.web.resource.impl.BaseDelegatingResource#getUpdatableProperties()
 	 */
 	@Override
     public DelegatingResourceDescription getUpdatableProperties() throws ResourceDoesNotSupportOperationException {
         DelegatingResourceDescription description = new DelegatingResourceDescription();
+        description.addRequiredProperty("uuid");
         description.addRequiredProperty("patient");
-        description.addRequiredProperty("person");
+        description.addProperty("person");
+        description.addRequiredProperty("actorResponseType");
         description.addProperty("actor");
         description.addProperty("textQuestion");
         description.addProperty("question");
@@ -132,37 +142,37 @@ public class ActorResponseRestResource extends DataDelegatingCrudResource<ActorR
         ModelImpl model = (ModelImpl) super.getGETModel(rep);
         if (rep instanceof DefaultRepresentation || rep instanceof FullRepresentation) {
             model
-                    .property("id", new StringProperty())
+                    .property("uuid", new StringProperty())
                     .property("patient", new StringProperty())
                     .property("person", new StringProperty())
+                    .property("actorResponseType", new StringProperty())
                     .property("actor", new StringProperty())
                     .property("sourceId", new StringProperty())
                     .property("sourceType", new StringProperty())
                     .property("textResponse", new StringProperty())
                     .property("answeredTime", new DateProperty())
-                    .property("question", new RefProperty("#/definitions/QuestionGetRef"))
-                    .property("response", new RefProperty("#/definitions/ResponseGetRef"))
-                    .property("attributes",
-                            new ArrayProperty(new RefProperty("#/definitions/ActorResponseAttributeGetRef")));
+                    .property("question", new StringProperty())
+                    .property("response", new StringProperty())
+                    .property("attributes",new ArrayProperty(new RefProperty("#/definitions/ActorResponseAttributeGetRef")));
 
         }
         if (rep instanceof DefaultRepresentation) {
             model
-                    .property("preferredResponse", new RefProperty("#/definitions/ResponseGetRef"))
-                    .property("preferredTextQuestion", new RefProperty("#/definitions/TextQuestionGetRef"))
-                    .property("preferredActor", new RefProperty("#/definitions/ActorGetRef"))
-                    .property("preferreQuestion", new RefProperty("#/definitions/QuestionGetRef"));
+                    .property("Response", new RefProperty("#/definitions/ResponseGetRef"))
+                    .property("TextQuestion", new RefProperty("#/definitions/TextQuestionGetRef"))
+                    .property("Actor", new RefProperty("#/definitions/ActorGetRef"))
+                    .property("Question", new RefProperty("#/definitions/QuestionGetRef"));             
 
         } else if (rep instanceof FullRepresentation) {
             model
-                    .property("preferredResponse", new RefProperty("#/definitions/ResponseGetRef"))
-                    .property("preferredTextQuestion", new RefProperty("#/definitions/TextQuestionGetRef"))
-                    .property("preferredActor", new RefProperty("#/definitions/ActorGetRef"))
-                    .property("preferreQuestion", new RefProperty("#/definitions/QuestionGetRef"))
-                    .property("preferredAnsweredTime", new RefProperty("#/definitions/AnsweredTimeGetRef"))
-                    .property("preferreQuestion", new RefProperty("#/definitions/QuestionGetRef"))
-                    .property("preferredSourceType", new RefProperty("#/definitions/SourceTypeGetRef"))
-                    .property("preferredSourceId", new RefProperty("#/definitions/SourceIdGetRef"));
+                    .property("Response", new RefProperty("#/definitions/ResponseGetRef"))
+                    .property("TextQuestion", new RefProperty("#/definitions/TextQuestionGetRef"))
+                    .property("Actor", new RefProperty("#/definitions/ActorGetRef"))
+                    .property("Question", new RefProperty("#/definitions/QuestionGetRef"))
+                    .property("AnsweredTime", new RefProperty("#/definitions/AnsweredTimeGetRef"))
+                    .property("Question", new RefProperty("#/definitions/QuestionGetRef"))
+                    .property("SourceType", new RefProperty("#/definitions/SourceTypeGetRef"))
+                    .property("SourceId", new RefProperty("#/definitions/SourceIdGetRef"));
         }
         return model;
     }
@@ -171,9 +181,9 @@ public class ActorResponseRestResource extends DataDelegatingCrudResource<ActorR
     @Override
     public Model getCREATEModel(Representation representation) {
         ModelImpl model = new ModelImpl()
-                .property("patient", new ArrayProperty(new RefProperty("#/definitions/PatientCreate")))
                 .property("person", new ArrayProperty(new RefProperty("#/definitions/PersonCreate")))
-                .property("id", new IntegerProperty())
+                .property("patient", new ArrayProperty(new RefProperty("#/definitions/PatientCreate")))
+                .property("uuid", new IntegerProperty())
                 .property("answeredTime", new DateProperty())
                 .property("actorResponseType",new ArrayProperty(new RefProperty("#/definitions/ActorResponseTypeAttributeCreate")))
                 .property("question",new ArrayProperty(new RefProperty("#/definitions/ActorResponseTypeQuestionCreate")))
@@ -186,12 +196,12 @@ public class ActorResponseRestResource extends DataDelegatingCrudResource<ActorR
     @Override
     public Model getUPDATEModel(Representation representation) {
         ModelImpl model = new ModelImpl()
-                .property("patient", new ArrayProperty(new RefProperty("#/definitions/PatientCreate")))
                 .property("person", new ArrayProperty(new RefProperty("#/definitions/PersonCreate")))
+                .property("patient", new ArrayProperty(new RefProperty("#/definitions/PatientCreate")))
                 .property("sourceId", new StringProperty())
                 .property("textResponse", new StringProperty())
-                .property("id", new IntegerProperty())
-                .property("answereTime", new StringProperty())
+                .property("uuid", new IntegerProperty())
+                .property("answeredTime", new DateProperty())
                 .property("deathDate", new DateProperty())
                 .property("causeOfDeath", new StringProperty())
                 .property("actorResponseType",
@@ -209,7 +219,7 @@ public class ActorResponseRestResource extends DataDelegatingCrudResource<ActorR
 	 */
 	@Override
     public List<String> getPropertiesToExposeAsSubResources() {
-        return Arrays.asList("actorResponseType", "question", "attributes");
+        return Arrays.asList("actorResponseType", "concept", "patient","p");
     }
  
     @Override
@@ -232,25 +242,22 @@ public class ActorResponseRestResource extends DataDelegatingCrudResource<ActorR
         return response.getTextQuestion();
 	}
 
-
     @Override
-    protected void delete(ActorResponse delegate, String textQuestion, RequestContext textResponse ) throws ResponseException {
-       if (delegate != null) {
+    protected void delete(ActorResponse response, String reason, RequestContext context) throws ResponseException {
+       if (response != null) {
 			return; //  delete is idempotent, so we return success here
 		}
-        Context.getService(ActorResponseService.class).delete(delegate);
+        Context.getService(ActorResponseService.class).delete(response);
     }
 
     @Override
-    public ActorResponse getByUniqueId(String uuid) {
-        return Context.getService(ActorResponseService.class).getByUuid(uuid);
+    public ActorResponse getByUniqueId(String uniqueid) {
+        return Context.getService(ActorResponseService.class).getByUuid(uniqueid);
     }
 
     @Override
     public void purge(ActorResponse delegate, RequestContext context) throws ResponseException {
-
         if (delegate == null) {
-            // DELETE is idempotent, so we return success here
             return;
         }
         Context.getService(ActorResponseService.class).delete(delegate);
@@ -260,5 +267,6 @@ public class ActorResponseRestResource extends DataDelegatingCrudResource<ActorR
     protected PageableResult doGetAll(RequestContext context) throws ResponseException {
         throw new ResourceDoesNotSupportOperationException();
     }
-    
+
 }
+    
