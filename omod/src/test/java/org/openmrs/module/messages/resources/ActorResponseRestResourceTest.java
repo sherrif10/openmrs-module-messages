@@ -30,7 +30,7 @@ public class ActorResponseRestResourceTest  {
     private final ActorResponseRestResource actorResponseRestResource = new ActorResponseRestResource();
 
     @Mock
-    private org.openmrs.module.messages.api.service.ActorResponseService ActorResponseService;
+    private ActorResponseService actorResponseService;
     
     @Mock
     private RequestContext requestContext;
@@ -38,7 +38,7 @@ public class ActorResponseRestResourceTest  {
     @Before
     public void setUp() {
         mockStatic(Context.class);
-        when(Context.getService(ActorResponseService.class)).thenReturn(ActorResponseService);
+        when(Context.getService(ActorResponseService.class)).thenReturn(actorResponseService);
     }
     
     @Test
@@ -79,13 +79,6 @@ public class ActorResponseRestResourceTest  {
         assertTrue(actual.getProperties().containsKey("sourceId"));
         assertTrue(actual.getProperties().containsKey("sourceType"));
         assertTrue(actual.getProperties().containsKey("answeredTime"));
-    }
-
-    @Test
-    public void shouldReturnNullWhenRepresentationIsDifferentThanRefAndDefault() {
-        DelegatingResourceDescription actual = actorResponseRestResource.getRepresentationDescription(new FullRepresentation());
-
-        assertNull(actual);
     }
 
     @Test

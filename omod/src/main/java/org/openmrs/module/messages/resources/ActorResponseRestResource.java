@@ -45,7 +45,7 @@ public class ActorResponseRestResource extends DataDelegatingCrudResource<ActorR
     public DelegatingResourceDescription getRepresentationDescription(Representation rep) {
         if (rep instanceof DefaultRepresentation) {
             DelegatingResourceDescription description = new DelegatingResourceDescription();
-            description.addProperty("uuid");
+            description.addProperty("id");
             description.addProperty("display");
             description.addProperty("patient", Representation.REF);
             description.addProperty("person", Representation.REF);
@@ -64,7 +64,7 @@ public class ActorResponseRestResource extends DataDelegatingCrudResource<ActorR
             return description;
         } else if (rep instanceof FullRepresentation) {
             DelegatingResourceDescription description = new DelegatingResourceDescription();
-            description.addProperty("uuid");
+            description.addProperty("id");
 			description.addProperty("display");
             description.addProperty("patient", Representation.REF);
             description.addProperty("person", Representation.REF);
@@ -81,7 +81,7 @@ public class ActorResponseRestResource extends DataDelegatingCrudResource<ActorR
             return description;
         } else if (rep instanceof RefRepresentation) {
             DelegatingResourceDescription description = new DelegatingResourceDescription();
-            description.addProperty("uuid");
+            description.addProperty("id");
             description.addProperty("patient",Representation.REF);
             description.addProperty("person",Representation.REF);
             description.addProperty("actor");
@@ -101,7 +101,7 @@ public class ActorResponseRestResource extends DataDelegatingCrudResource<ActorR
 	@Override
     public DelegatingResourceDescription getCreatableProperties() {
         DelegatingResourceDescription description = new DelegatingResourceDescription();
-        description.addRequiredProperty("uuid");
+        description.addRequiredProperty("id");
         description.addProperty("person", Representation.REF);
         description.addRequiredProperty("patient");
         description.addRequiredProperty("actorResponseType");
@@ -122,7 +122,7 @@ public class ActorResponseRestResource extends DataDelegatingCrudResource<ActorR
 	@Override
     public DelegatingResourceDescription getUpdatableProperties() throws ResourceDoesNotSupportOperationException {
         DelegatingResourceDescription description = new DelegatingResourceDescription();
-        description.addRequiredProperty("uuid");
+        description.addRequiredProperty("id");
         description.addRequiredProperty("patient");
         description.addProperty("person");
         description.addRequiredProperty("actorResponseType");
@@ -142,7 +142,7 @@ public class ActorResponseRestResource extends DataDelegatingCrudResource<ActorR
         ModelImpl model = (ModelImpl) super.getGETModel(rep);
         if (rep instanceof DefaultRepresentation || rep instanceof FullRepresentation) {
             model
-                    .property("uuid", new StringProperty())
+                    .property("id", new StringProperty())
                     .property("patient", new StringProperty())
                     .property("person", new StringProperty())
                     .property("actorResponseType", new StringProperty())
@@ -183,7 +183,7 @@ public class ActorResponseRestResource extends DataDelegatingCrudResource<ActorR
         ModelImpl model = new ModelImpl()
                 .property("person", new ArrayProperty(new RefProperty("#/definitions/PersonCreate")))
                 .property("patient", new ArrayProperty(new RefProperty("#/definitions/PatientCreate")))
-                .property("uuid", new IntegerProperty())
+                .property("id", new IntegerProperty())
                 .property("answeredTime", new DateProperty())
                 .property("actorResponseType",new ArrayProperty(new RefProperty("#/definitions/ActorResponseTypeAttributeCreate")))
                 .property("question",new ArrayProperty(new RefProperty("#/definitions/ActorResponseTypeQuestionCreate")))
@@ -200,7 +200,7 @@ public class ActorResponseRestResource extends DataDelegatingCrudResource<ActorR
                 .property("patient", new ArrayProperty(new RefProperty("#/definitions/PatientCreate")))
                 .property("sourceId", new StringProperty())
                 .property("textResponse", new StringProperty())
-                .property("uuid", new IntegerProperty())
+                .property("id", new IntegerProperty())
                 .property("answeredTime", new DateProperty())
                 .property("deathDate", new DateProperty())
                 .property("causeOfDeath", new StringProperty())
@@ -214,14 +214,6 @@ public class ActorResponseRestResource extends DataDelegatingCrudResource<ActorR
         return model;
     }
     
-    /**
-	 * @see org.openmrs.module.webservices.rest.web.resource.impl.BaseDelegatingResource#getPropertiesToExposeAsSubResources()
-	 */
-	@Override
-    public List<String> getPropertiesToExposeAsSubResources() {
-        return Arrays.asList("actorResponseType", "concept", "patient","p");
-    }
- 
     @Override
     public ActorResponse newDelegate() {
         return new ActorResponse();
@@ -251,8 +243,8 @@ public class ActorResponseRestResource extends DataDelegatingCrudResource<ActorR
     }
 
     @Override
-    public ActorResponse getByUniqueId(String uniqueid) {
-        return Context.getService(ActorResponseService.class).getByUuid(uniqueid);
+    public ActorResponse getByUniqueId(String uuid) {
+        return Context.getService(ActorResponseService.class).getByUuid(uuid);
     }
 
     @Override
