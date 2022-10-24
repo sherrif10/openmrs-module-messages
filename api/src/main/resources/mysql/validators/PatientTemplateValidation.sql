@@ -1,4 +1,5 @@
-CREATE PROCEDURE validate_messages_patient_template(
+DELIMITER $$
+CREATE PROCEDURE `validate_messages_patient_template`(
 	IN actor_id INT,
 	IN patient_id INT,
 	IN template_id INT
@@ -14,7 +15,8 @@ BEGIN
 		SET @error_message = CONCAT(
 			'Duplicate combinantion of actor_id-patient_id-template_id (',
 			actor_id, '-', patient_id, '-', template_id, ') ',
-		    'for not voided messages_patient_template'); -- it is because CONCAT cannot be invoked in the next line
-		SIGNAL SQLSTATE '23000' SET MESSAGE_TEXT = @error_message; -- it rollbacks the current transaction
+		    'for not voided messages_patient_template');
+		SIGNAL SQLSTATE '23000' SET MESSAGE_TEXT = @error_message;
 	END IF;
-END;
+END$$
+DELIMITER ;
