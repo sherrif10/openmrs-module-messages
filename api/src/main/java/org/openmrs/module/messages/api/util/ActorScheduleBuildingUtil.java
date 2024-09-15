@@ -19,8 +19,14 @@ import org.openmrs.module.messages.api.dto.ActorScheduleDTO;
 import org.openmrs.module.messages.api.model.PatientTemplate;
 import org.openmrs.module.messages.api.model.TemplateFieldType;
 
+import java.time.DayOfWeek;
+import java.time.format.DateTimeFormatter;
+import java.time.format.TextStyle;
+import java.time.temporal.TemporalAccessor;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
+import java.util.Map;
 
 import static org.openmrs.module.messages.api.util.PatientTemplateFieldUtil.getTemplateFieldValue;
 
@@ -173,5 +179,26 @@ public final class ActorScheduleBuildingUtil {
     }
 
     private ActorScheduleBuildingUtil() {
+    }
+
+    public static DayOfWeek fromLocale(String dayOfWeek, Locale locale) {
+        DateTimeFormatter dayOfWeekReader = DateTimeFormatter.ofPattern("EEEE", locale);
+        TemporalAccessor temporalAccessor = dayOfWeekReader.parse(dayOfWeek);
+        return DayOfWeek.from(temporalAccessor);
+
+    // build some example pairs of Locale and String
+     Map<Locale, String> localizedDisplayNames = Map.of(
+        Locale.FRENCH, "mercredi",
+        Locale.forLanguageTag("es"), "miércoles");
+    // then convert to DayOfWeek for each entry
+    localizedDisplayNames.entrySet().forEach(e -> {
+       Locale locale = e.getKey();
+      String nonEnglishDisplayName = e.getValue();
+      String msg = String.format("%s (%s):\t%s (en)",
+          nonEnglishDisplayName,
+          locale.getLanguage(),
+          fromLocale(nonEnglishDisplayName, locale)
+              .getDisplayName(TextStyle.FULL, Locale.ENGLISH));
+    });
     }
 }
